@@ -2,135 +2,135 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-// --- Factory Method для створення користувачів ---
-public abstract class AbstractUser
+// --- Factory Method для користувачів ---
+public abstract class User
 {
-    public abstract void ShowRole();
+    public abstract void DisplayRole();
 }
 
-public class Administrator : AbstractUser
+public class Admin : User
 {
-    public override void ShowRole() => Console.WriteLine("Я Адміністратор системи.");
+    public override void DisplayRole() => Console.WriteLine("Я Адміністратор.");
 }
 
-public class Supervisor : AbstractUser
+public class Manager : User
 {
-    public override void ShowRole() => Console.WriteLine("Я Керівник.");
+    public override void DisplayRole() => Console.WriteLine("Я Менеджер.");
 }
 
-public class Worker : AbstractUser
+public class Employee : User
 {
-    public override void ShowRole() => Console.WriteLine("Я Працівник компанії.");
+    public override void DisplayRole() => Console.WriteLine("Я Працівник.");
 }
 
-public abstract class AbstractUserFactory
+public abstract class UserFactory
 {
-    public abstract AbstractUser MakeUser();
+    public abstract User CreateUser();
 }
 
-public class AdministratorFactory : AbstractUserFactory
+public class AdminFactory : UserFactory
 {
-    public override AbstractUser MakeUser() => new Administrator();
+    public override User CreateUser() => new Admin();
 }
 
-public class SupervisorFactory : AbstractUserFactory
+public class ManagerFactory : UserFactory
 {
-    public override AbstractUser MakeUser() => new Supervisor();
+    public override User CreateUser() => new Manager();
 }
 
-public class WorkerFactory : AbstractUserFactory
+public class EmployeeFactory : UserFactory
 {
-    public override AbstractUser MakeUser() => new Worker();
+    public override User CreateUser() => new Employee();
 }
 
-// --- Composite для представлення файлової структури ---
-public interface IFileComponent
+// --- Composite для файлової системи ---
+public interface IFileSystemComponent
 {
-    void Render(string indent = "");
+    void Display(string indent = "");
 }
 
-public class FileLeaf : IFileComponent
+public class File : IFileSystemComponent
 {
-    private readonly string _filename;
+    private readonly string _name;
 
-    public FileLeaf(string filename)
+    public File(string name)
     {
-        _filename = filename;
+        _name = name;
     }
 
-    public void Render(string indent = "")
+    public void Display(string indent = "")
     {
-        Console.WriteLine($"{indent}Файл: {_filename}");
+        Console.WriteLine($"{indent}Файл: {_name}");
     }
 }
 
-public class DirectoryComposite : IFileComponent
+public class Directory : IFileSystemComponent
 {
-    private readonly List<IFileComponent> _items = new();
-    private readonly string _directoryName;
+    private readonly List<IFileSystemComponent> _children = new();
+    private readonly string _name;
 
-    public DirectoryComposite(string directoryName)
+    public Directory(string name)
     {
-        _directoryName = directoryName;
+        _name = name;
     }
 
-    public void Add(IFileComponent component)
+    public void Add(IFileSystemComponent component)
     {
-        _items.Add(component);
+        _children.Add(component);
     }
 
-    public void Render(string indent = "")
+    public void Display(string indent = "")
     {
-        Console.WriteLine($"{indent}Папка: {_directoryName}");
-        foreach (var item in _items)
+        Console.WriteLine($"{indent}Папка: {_name}");
+        foreach (var child in _children)
         {
-            item.Render(indent + "  ");
+            child.Display(indent + "  ");
         }
     }
 }
 
-// --- Strategy для шифрування тексту ---
-public interface IEncryptStrategy
+// --- Strategy для шифрування даних ---
+public interface IEncryptionStrategy
 {
-    string Encrypt(string input);
+    string Encrypt(string data);
 }
 
-public class AesEncryptor : IEncryptStrategy
+public class AesEncryption : IEncryptionStrategy
 {
-    public string Encrypt(string input)
+    public string Encrypt(string data)
     {
-        return $"[AES] {Convert.ToBase64String(Encoding.UTF8.GetBytes(input))}";
+        return $"[AES] {Convert.ToBase64String(Encoding.UTF8.GetBytes(data))}";
     }
 }
 
-public class RsaEncryptor : IEncryptStrategy
+public class RsaEncryption : IEncryptionStrategy
 {
-    public string Encrypt(string input)
+    public string Encrypt(string data)
     {
-        return $"[RSA] {Convert.ToBase64String(Encoding.UTF8.GetBytes(input))}";
+        return $"[RSA] {Convert.ToBase64String(Encoding.UTF8.GetBytes(data))}";
     }
 }
 
-public class SimpleBase64Encryptor : IEncryptStrategy
+public class Base64Encryption : IEncryptionStrategy
 {
-    public string Encrypt(string input)
+    public string Encrypt(string data)
     {
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(input));
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(data));
     }
 }
 
-public class DataEncryptor
+public class Encryptor
 {
-    private IEncryptStrategy _encryptStrategy;
+    private IEncryptionStrategy _strategy;
 
-    public void ChangeStrategy(IEncryptStrategy strategy)
+    public void SetStrategy(IEncryptionStrategy strategy)
     {
-        _encryptStrategy = strategy;
+        _strategy = strategy;
     }
 
-    public void ExecuteEncryption(string input)
+    public void EncryptData(string data)
     {
-        Console.WriteLine(_encryptStrategy.Encrypt(input));
+        Console.WriteLine(_strategy.Encrypt(data));
     }
 }
 
@@ -139,74 +139,40 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine("Оберіть патерн для демонстрації:");
-        Console.WriteLine("1. Factory Method");
-        Console.WriteLine("2. Composite");
-        Console.WriteLine("3. Strategy");
-        Console.Write("Ваш вибір (1-3): ");
+        Console.WriteLine("=== Factory Method: Користувачі ===");
+        UserFactory factory = new AdminFactory();
+        User admin = factory.CreateUser();
+        admin.DisplayRole();
 
-        var choice = Console.ReadLine();
-        Console.WriteLine();
+        factory = new ManagerFactory();
+        User manager = factory.CreateUser();
+        manager.DisplayRole();
 
-        switch (choice)
-        {
-            case "1":
-                RunFactoryMethod();
-                break;
-            case "2":
-                RunComposite();
-                break;
-            case "3":
-                RunStrategy();
-                break;
-            default:
-                Console.WriteLine("Невірний вибір.");
-                break;
-        }
-    }
+        factory = new EmployeeFactory();
+        User employee = factory.CreateUser();
+        employee.DisplayRole();
 
-    static void RunFactoryMethod()
-    {
-        Console.WriteLine("=== Factory Method: Створення користувачів ===");
-        AbstractUserFactory userFactory = new AdministratorFactory();
-        AbstractUser admin = userFactory.MakeUser();
-        admin.ShowRole();
+        Console.WriteLine("\n=== Composite: Файлова система ===");
+        var root = new Directory("Root");
+        root.Add(new File("readme.txt"));
 
-        userFactory = new SupervisorFactory();
-        AbstractUser supervisor = userFactory.MakeUser();
-        supervisor.ShowRole();
+        var subFolder = new Directory("Docs");
+        subFolder.Add(new File("doc1.pdf"));
+        subFolder.Add(new File("doc2.pdf"));
 
-        userFactory = new WorkerFactory();
-        AbstractUser worker = userFactory.MakeUser();
-        worker.ShowRole();
-    }
+        root.Add(subFolder);
+        root.Display();
 
-    static void RunComposite()
-    {
-        Console.WriteLine("=== Composite: Структура файлів ===");
-        var mainFolder = new DirectoryComposite("Головна папка");
-        mainFolder.Add(new FileLeaf("інструкція.txt"));
+        Console.WriteLine("\n=== Strategy: Шифрування даних ===");
+        Encryptor encryptor = new Encryptor();
 
-        var documents = new DirectoryComposite("Документи");
-        documents.Add(new FileLeaf("звіт1.pdf"));
-        documents.Add(new FileLeaf("звіт2.pdf"));
+        encryptor.SetStrategy(new AesEncryption());
+        encryptor.EncryptData("Секретні дані");
 
-        mainFolder.Add(documents);
-        mainFolder.Render();
-    }
+        encryptor.SetStrategy(new RsaEncryption());
+        encryptor.EncryptData("Конфіденційна інформація");
 
-    static void RunStrategy()
-    {
-        Console.WriteLine("=== Strategy: Шифрування тексту ===");
-        var dataEncryptor = new DataEncryptor();
-
-        dataEncryptor.ChangeStrategy(new AesEncryptor());
-        dataEncryptor.ExecuteEncryption("Конфіденційні дані");
-
-        dataEncryptor.ChangeStrategy(new RsaEncryptor());
-        dataEncryptor.ExecuteEncryption("Важлива інформація");
-
-        dataEncryptor.ChangeStrategy(new SimpleBase64Encryptor());
-        dataEncryptor.ExecuteEncryption("Тестовий текст");
+        encryptor.SetStrategy(new Base64Encryption());
+        encryptor.EncryptData("Простий текст");
     }
 }
